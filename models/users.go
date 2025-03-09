@@ -20,4 +20,11 @@ type (
 		Email         string `json:"email,omitempty"`
 		EmailVerified bool   `json:"email_verified,omitempty"`
 	}
+
+	UserResponse struct {
+		*GBase
+		UserProfile UserProfile `json:"user_profile" bson:"user_profile"`
+		Status      string      `json:"status" bson:"status"`
+		Scope       []string    `json:"scope" bson:"scope"`
+	}
 )

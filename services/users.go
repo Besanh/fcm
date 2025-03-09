@@ -8,6 +8,7 @@ import (
 	"fcm/common/log"
 	"fcm/common/util"
 	"fcm/models"
+	circuitbreaker "fcm/pkgs/circuit_breaker"
 	"fcm/pkgs/oauth"
 	"fcm/repositories"
 	"fmt"
@@ -20,20 +21,21 @@ import (
 )
 
 type (
-	IUser interface {
+	IUsers interface {
 		Login(ctx context.Context) (url string)
 		OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Callback) (token string, err error)
+		// Me(ctx context.Context, email string) (user *models.User, err error)
 	}
 
-	User struct {
+	Users struct {
 		userRepo       repositories.IUser
 		oauth2Client   oauth.IOAuth2
 		sessionManager *scs.SessionManager
 	}
 )
 
-func NewUser(userRepo repositories.IUser, oauth2Client oauth.IOAuth2) IUser {
-	return &User{
+func NewUser(userRepo repositories.IUser, oauth2Client oauth.IOAuth2) IUsers {
+	return &Users{
 		userRepo:     userRepo,
 		oauth2Client: oauth2Client,
 	}
@@ -42,7 +44,7 @@ func NewUser(userRepo repositories.IUser, oauth2Client oauth.IOAuth2) IUser {
 /*
  * Login and return url(google app)
  */
-func (s *User) Login(ctx context.Context) (callbackUrl string) {
+func (s *Users) Login(ctx context.Context) (callbackUrl string) {
 	// use PKCE to protect against CSRF attacks
 	// https://www.ietf.org/archive/id/draft-ietf-oauth-security-topics-22.html#name-countermeasures-6
 	verifier := oauth2.GenerateVerifier()
@@ -74,7 +76,7 @@ func (s *User) Login(ctx context.Context) (callbackUrl string) {
 	return
 }
 
-func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Callback) (token string, err error) {
+func (s *Users) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Callback) (token string, err error) {
 	// s.sessionManager.Put(ctx, fmt.Sprintf("authenticated:%s", callbackData.State), true)
 	// s.sessionManager.Put(ctx, "user_id", "user123")
 	// s.sessionManager.Put(ctx, "device_id", "deviceXYZ")
@@ -111,7 +113,7 @@ func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Ca
 	userProfile, err := s.getProfileUser(ctx, OAuth2Request{
 		AccessToken: userInfo.AccessToken,
 		Url:         GOOGLE_URL_USER_INFO,
-		CBSetting: CBSetting{
+		CBSetting: circuitbreaker.CBSetting{
 			CBName:     "GOOGLE_USER_PROFILE",
 			MaxRequest: 1,
 			Interval:   5 * time.Second,
