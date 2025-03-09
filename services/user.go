@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fcm/common/cache"
 	"fcm/common/constant"
 	"fcm/common/log"
@@ -101,15 +102,41 @@ func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Ca
 		return
 	}
 
-	user := &models.User{
-		GBase:                 models.InitBase(),
-		Status:                constant.USER_STATUS_ACTIVE,
-		RefreshTokenEncrypted: refreshTokenEncrypted,
+	user := models.User{
+		GBase:  models.InitBase(),
+		Status: constant.USER_STATUS_ACTIVE,
+	}
+
+	// Get user profile
+	userProfile, err := s.getProfileUser(ctx, OAuth2Request{
+		AccessToken: userInfo.AccessToken,
+		Url:         GOOGLE_URL_USER_INFO,
+		CBSetting: CBSetting{
+			CBName:     "GOOGLE_USER_PROFILE",
+			MaxRequest: 1,
+			Interval:   5 * time.Second,
+			TimeOut:    5 * time.Second,
+			MaxTripCB:  3,
+		},
+		Timeout: 5 * time.Second,
+	})
+	if err != nil {
+		log.Debug(err)
+		return
+	}
+	user.UserProfile = userProfile
+
+	// Marshal data and put to redis
+	data, err := json.Marshal(user)
+	if err != nil {
+		log.Error(err)
+		return
 	}
 
 	// Start transaction redis
 	redisTx := cache.RCache.TxPineLine()
-	cache.RCache.TxSet(ctx, redisTx, fmt.Sprintf("%s:%s", OAUTH2_TOKEN, userInfo.AccessToken), userInfo.AccessToken, ttl)
+	cache.RCache.TxSet(ctx, redisTx, fmt.Sprintf("%s:%s", OAUTH2_TOKEN, userInfo.AccessToken), data, ttl)
+	user.RefreshTokenEncrypted = refreshTokenEncrypted
 
 	// Start transaction mongodb
 	mongoSession, err := s.userRepo.StartSession()
@@ -126,10 +153,19 @@ func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Ca
 			return
 		}
 
-		if err = s.userRepo.Insert(ctx, user); err != nil {
+		// Check email
+		total, _, err := s.userRepo.Select(ctx, 1, 0, repositories.Filter{Key: "email", Value: userProfile.Email})
+		if err != nil {
 			s.userRepo.AbortTransaction(ctx, mongoSession)
 			return err
+		} else if total == 0 {
+			if err = s.userRepo.Insert(ctx, &user); err != nil {
+				s.userRepo.AbortTransaction(ctx, mongoSession)
+				return err
+			}
 		}
+
+		// Nothing to do if user already exist
 
 		if err = s.userRepo.CommitTransaction(ctx, mongoSession); err != nil {
 			s.userRepo.AbortTransaction(ctx, mongoSession)

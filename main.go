@@ -166,6 +166,7 @@ func main() {
 
 	server := server.NewServer(envMode, sessionManager)
 	services.ENABLE_LOGIN_MULTI_SESSION = env.GetBoolENV("ENABLE_LOGIN_MULTI_SESSION", false)
+	services.GOOGLE_URL_USER_INFO = env.GetStringENV("GOOGLE_URL_USER_INFO", "")
 
 	initServices(server)
 

@@ -25,11 +25,14 @@ func NewServer(envMode string, sessionManager *scs.SessionManager) *Server {
 	}
 
 	engine := gin.New()
+
+	// Use the session middleware
 	engine.Use(func(c *gin.Context) {
 		sessionManager.LoadAndSave(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).
 			ServeHTTP(c.Writer, c.Request)
 		c.Next()
 	})
+
 	engine.Use(gin.Recovery())
 	engine.MaxMultipartMemory = 100 << 20
 	engine.Use(CORSMiddleware())

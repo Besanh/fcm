@@ -5,6 +5,9 @@ import "fcm/pkgs/oauth"
 var (
 	OAUTH2CONFIG               *oauth.OAuth2Config
 	ENABLE_LOGIN_MULTI_SESSION bool = false
+
+	// Google url get user info
+	GOOGLE_URL_USER_INFO string = ""
 )
 
 const (

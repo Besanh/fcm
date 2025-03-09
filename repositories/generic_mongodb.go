@@ -16,7 +16,8 @@ import (
 type (
 	IRepoGeneric[T models.GModel] interface {
 		GetById(ctx context.Context, id string) (result *T, err error)
-		Select(ctx context.Context, limit, offset int64, params ...Filter) (entities []*T, total int64, err error)
+		Select(ctx context.Context, limit, offset int64, params ...Filter) (total int64, entities []*T, err error)
+		CountFilter(ctx context.Context, filter Filter) (total int64, err error)
 		GetCollection() *mongo.Collection
 
 		// Insert
@@ -203,7 +204,7 @@ func (repo *RepoGeneric[T]) BulkDeleteOneById(ctx context.Context, entities []*T
 	return
 }
 
-func (repo *RepoGeneric[T]) Select(ctx context.Context, limit, offset int64, params ...Filter) (entities []*T, total int64, err error) {
+func (repo *RepoGeneric[T]) Select(ctx context.Context, limit, offset int64, params ...Filter) (total int64, entities []*T, err error) {
 	entities = make([]*T, 0)
 	filters := make(bson.D, 0)
 	for _, param := range params {
@@ -212,7 +213,7 @@ func (repo *RepoGeneric[T]) Select(ctx context.Context, limit, offset int64, par
 	var cur *mongo.Cursor
 	cur, err = repo.DB.Collection(repo.Collection).Find(ctx, filters, options.Find().SetLimit(limit).SetSkip(offset))
 	if err == mongo.ErrNoDocuments {
-		return nil, 0, nil
+		return 0, nil, nil
 	} else if err != nil {
 		return
 	}
@@ -220,17 +221,22 @@ func (repo *RepoGeneric[T]) Select(ctx context.Context, limit, offset int64, par
 	for cur.Next(ctx) {
 		entity := new(T)
 		if err := cur.Decode(entity); err != nil {
-			return nil, 0, err
+			return 0, nil, err
 		}
 		entities = append(entities, entity)
 	}
 	if err := cur.Err(); err != nil {
-		return nil, 0, err
+		return 0, nil, err
 	}
 	total, err = repo.DB.Collection(repo.Collection).CountDocuments(ctx, filters)
 	if err != nil {
-		return nil, 0, err
+		return 0, nil, err
 	}
+	return
+}
+
+func (repo *RepoGeneric[T]) CountFilter(ctx context.Context, filter Filter) (total int64, err error) {
+	total, err = repo.DB.Collection(repo.Collection).CountDocuments(ctx, filter)
 	return
 }
 
