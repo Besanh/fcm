@@ -19,8 +19,11 @@ type (
 		Timeout     time.Duration
 
 		// Device code
-		ClientId string
-		Scope    string
+		ClientId   string
+		Scope      string
+		DeviceCode string
+		Interval   int
+		ExpiresIn  int
 	}
 )
 

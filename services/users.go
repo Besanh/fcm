@@ -28,16 +28,16 @@ type (
 	}
 
 	Users struct {
-		userRepo       repositories.IUser
-		oauth2Client   oauth.IOAuth2
+		UserRepo       repositories.IUser
+		OAuth2Client   oauth.IOAuth2
 		sessionManager *scs.SessionManager
 	}
 )
 
 func NewUser(userRepo repositories.IUser, oauth2Client oauth.IOAuth2) IUsers {
 	return &Users{
-		userRepo:     userRepo,
-		oauth2Client: oauth2Client,
+		UserRepo:     userRepo,
+		OAuth2Client: oauth2Client,
 	}
 }
 
@@ -52,7 +52,7 @@ func (s *Users) Login(ctx context.Context) (callbackUrl string) {
 	challenge := util.GenerateCodeChallenge(verifier)
 
 	// Generate the authorization URL with PKCE parameters.
-	authURL, err := url.Parse(s.oauth2Client.AuthCodeUrl(OAUTH2_STATE, verifier))
+	authURL, err := url.Parse(s.OAuth2Client.AuthCodeUrl(OAUTH2_STATE, verifier))
 	if err != nil {
 		log.Error(err)
 		return
@@ -72,7 +72,7 @@ func (s *Users) Login(ctx context.Context) (callbackUrl string) {
 
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
-	callbackUrl = s.oauth2Client.AuthCodeUrl(OAUTH2_STATE, verifier)
+	callbackUrl = s.OAuth2Client.AuthCodeUrl(OAUTH2_STATE, verifier)
 	return
 }
 
@@ -90,7 +90,7 @@ func (s *Users) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2C
 	verifier := verifierCache.(string)
 
 	// Exchange the code for a token
-	userInfo, err := s.oauth2Client.Exchange(ctx, callbackData.Code, oauth2.SetAuthURLParam("code_verifier", verifier))
+	userInfo, err := s.OAuth2Client.Exchange(ctx, callbackData.Code, oauth2.SetAuthURLParam("code_verifier", verifier))
 	if err != nil {
 		log.Error(err)
 		return
@@ -141,7 +141,7 @@ func (s *Users) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2C
 	user.RefreshTokenEncrypted = refreshTokenEncrypted
 
 	// Start transaction mongodb
-	mongoSession, err := s.userRepo.StartSession()
+	mongoSession, err := s.UserRepo.StartSession()
 	if err != nil {
 		log.Error(err)
 		return
@@ -151,26 +151,26 @@ func (s *Users) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2C
 
 	// Transaction mongodb
 	if err = mongo.WithSession(ctx, mongoSession, func(sc mongo.SessionContext) (err error) {
-		if err = s.userRepo.StartTransaction(mongoSession); err != nil {
+		if err = s.UserRepo.StartTransaction(mongoSession); err != nil {
 			return
 		}
 
 		// Check email
-		total, _, err := s.userRepo.Select(ctx, 1, 0, repositories.Filter{Key: "email", Value: userProfile.Email})
+		total, _, err := s.UserRepo.Select(ctx, 1, 0, repositories.Filter{Key: "email", Value: userProfile.Email})
 		if err != nil {
-			s.userRepo.AbortTransaction(ctx, mongoSession)
+			s.UserRepo.AbortTransaction(ctx, mongoSession)
 			return err
 		} else if total == 0 {
-			if err = s.userRepo.Insert(ctx, &user); err != nil {
-				s.userRepo.AbortTransaction(ctx, mongoSession)
+			if err = s.UserRepo.Insert(ctx, &user); err != nil {
+				s.UserRepo.AbortTransaction(ctx, mongoSession)
 				return err
 			}
 		}
 
 		// Nothing to do if user already exist
 
-		if err = s.userRepo.CommitTransaction(ctx, mongoSession); err != nil {
-			s.userRepo.AbortTransaction(ctx, mongoSession)
+		if err = s.UserRepo.CommitTransaction(ctx, mongoSession); err != nil {
+			s.UserRepo.AbortTransaction(ctx, mongoSession)
 			return
 		}
 
