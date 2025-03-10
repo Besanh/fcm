@@ -193,11 +193,8 @@ func initServices(server *server.Server) {
 
 	oAuth2Client := oauth.NewOAuth2(*services.OAUTH2CONFIG)
 
-	services.NewUser(repositories.UserRepo, oAuth2Client)
-	services.NewDevices(oAuth2Client)
-
 	// Handler
 	v1.NewUsers(server.Engine, sessionManager, services.NewUser(repositories.UserRepo, oAuth2Client))
-	v1.NewDevices(server.Engine, services.NewDevices(oAuth2Client))
-	v1.NewDevicesFcm(server.Engine, services.NewDevicesFcm(oAuth2Client))
+	v1.NewDevices(server.Engine, services.NewDevices())
+	v1.NewDevicesFcm(server.Engine, services.NewDevicesFcm())
 }

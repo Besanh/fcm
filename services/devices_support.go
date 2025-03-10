@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"fcm/models"
 	circuitbreaker "fcm/pkgs/circuit_breaker"
@@ -16,7 +15,7 @@ import (
  * Get authorization device code
  * Endpoint: https://accounts.google.com/o/oauth2/device/code
  */
-func (s *Devices) getDeviceCode(ctx context.Context, request OAuth2Request) (result models.DeviceCodeResponse, err error) {
+func (s *Devices) getDeviceCode(request OAuth2Request) (result models.DeviceCodeResponse, err error) {
 	client := resty.NewResty(resty.RestyConfig{Timeout: request.Timeout})
 	defer client.Close()
 	client.SetTimeout(request.Timeout)
@@ -55,7 +54,7 @@ func (s *Devices) getDeviceCode(ctx context.Context, request OAuth2Request) (res
 	return
 }
 
-func (s *Devices) getPollForToken(ctx context.Context, request OAuth2Request) (result models.TokenResponse, err error) {
+func (s *Devices) getPollForToken(request OAuth2Request) (result models.TokenResponse, err error) {
 	expiryTime := time.Now().Add(time.Duration(request.ExpiresIn) * time.Second)
 
 	for {

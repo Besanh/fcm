@@ -4,7 +4,6 @@ import (
 	"context"
 	"fcm/common/log"
 	"fcm/models"
-	"fcm/pkgs/oauth"
 	"fcm/repositories"
 	"fmt"
 )
@@ -15,17 +14,11 @@ type (
 		UnRegisterDeviceToken(ctx context.Context, request models.RegisterDeviceTokenRequest) (err error)
 	}
 
-	DevicesFcm struct {
-		Devices
-	}
+	DevicesFcm struct{}
 )
 
-func NewDevicesFcm(oauth2Client oauth.IOAuth2) IDevicesFcm {
-	return &DevicesFcm{
-		Devices: Devices{
-			OAuth2Client: oauth2Client,
-		},
-	}
+func NewDevicesFcm() IDevicesFcm {
+	return &DevicesFcm{}
 }
 
 func (s *DevicesFcm) RegisterDeviceToken(ctx context.Context, request models.RegisterDeviceTokenRequest) (err error) {
