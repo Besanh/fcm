@@ -174,8 +174,11 @@ func main() {
 }
 
 func initServices(server *server.Server) {
-	repositories.UserRepo = repositories.NewUser(&DB)
+	// Repositories
+	repositories.UserRepo = repositories.NewUsers(&DB)
+	repositories.DevicesFcmRepo = repositories.NewDevicesFcm(*redis.Redis.GetClient())
 
+	// Services
 	oau2Scope := env.GetSliceStringENV("OAUTH2_SCOPE", []string{})
 	services.OAUTH2CONFIG = &oauth.OAuth2Config{
 		ClientId:     env.GetStringENV("OAUTH2_CLIENT_ID", ""),
@@ -196,4 +199,5 @@ func initServices(server *server.Server) {
 	// Handler
 	v1.NewUsers(server.Engine, sessionManager, services.NewUser(repositories.UserRepo, oAuth2Client))
 	v1.NewDevices(server.Engine, services.NewDevices(oAuth2Client))
+	v1.NewDevicesFcm(server.Engine, services.NewDevicesFcm(oAuth2Client))
 }

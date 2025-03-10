@@ -24,17 +24,16 @@ type (
 	IUsers interface {
 		Login(ctx context.Context) (url string)
 		OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Callback) (token string, err error)
-		// Me(ctx context.Context, email string) (user *models.User, err error)
 	}
 
 	Users struct {
-		UserRepo       repositories.IUser
+		UserRepo       repositories.IUsers
 		OAuth2Client   oauth.IOAuth2
 		sessionManager *scs.SessionManager
 	}
 )
 
-func NewUser(userRepo repositories.IUser, oauth2Client oauth.IOAuth2) IUsers {
+func NewUser(userRepo repositories.IUsers, oauth2Client oauth.IOAuth2) IUsers {
 	return &Users{
 		UserRepo:     userRepo,
 		OAuth2Client: oauth2Client,

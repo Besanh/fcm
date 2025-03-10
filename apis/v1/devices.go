@@ -19,8 +19,8 @@ func NewDevices(engine *gin.Engine, deviceService services.IDevices) {
 
 	group := engine.Group("v1/devices")
 	{
-		group.GET("devicecode", handler.DeviceCode)
-		group.GET("pollfortoken", handler.PollForToken)
+		group.GET("device-code", handler.DeviceCode)
+		group.GET("poll-for-token", handler.PollForToken)
 	}
 }
 

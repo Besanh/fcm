@@ -8,14 +8,16 @@ require (
 	github.com/dromara/carbon/v2 v2.5.4
 	github.com/gookit/slog v0.5.7
 	github.com/nats-io/nats.go v1.39.1
+	github.com/sony/gobreaker/v2 v2.1.0
 	golang.org/x/oauth2 v0.28.0
+	resty.dev/v3 v3.0.0-beta.2
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
-	github.com/bytedance/sonic v1.12.10 // indirect
-	github.com/bytedance/sonic/loader v0.2.3 // indirect
+	github.com/bytedance/sonic v1.13.1 // indirect
+	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
@@ -32,7 +34,7 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -56,7 +58,6 @@ require (
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/samber/slog-common v0.18.1 // indirect
-	github.com/sony/gobreaker/v2 v2.1.0 // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 	github.com/tidwall/buntdb v1.3.2 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
@@ -94,7 +95,6 @@ require (
 	gopkg.in/oauth2.v3 v3.12.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.2 // indirect
-	resty.dev/v3 v3.0.0-beta.2 // indirect
 )
 
 require (

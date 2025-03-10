@@ -20,3 +20,10 @@ type (
 		ErrorDesc    string `json:"error_description,omitempty"`
 	}
 )
+
+// Fcm
+type (
+	RegisterDeviceTokenRequest struct {
+		FcmToken string `json:"fcm_token" form:"fcm_token" required:"true"`
+	}
+)

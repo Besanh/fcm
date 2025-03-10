@@ -11,21 +11,21 @@ import (
 )
 
 type (
-	IUser interface {
+	IUsers interface {
 		IRepoGeneric[models.User]
 	}
-	User struct {
+	Users struct {
 		RepoGeneric[models.User]
 	}
 )
 
-var UserRepo IUser
+var UserRepo IUsers
 
 /*
  * Declare new repo with collection(table)
  */
-func NewUser(db *mongodb.IMongoDBClient) IUser {
-	repo := &User{
+func NewUsers(db *mongodb.IMongoDBClient) IUsers {
+	repo := &Users{
 		RepoGeneric: RepoGeneric[models.User]{
 			DB:         *db,
 			Collection: "users",
@@ -46,7 +46,7 @@ func NewUser(db *mongodb.IMongoDBClient) IUser {
 		if err != nil {
 			log.Errorf("failed to create collection: %v", err)
 		} else {
-			log.Debugf("collection '%s' created", repo.Collection)
+			log.Errorf("collection '%s' created", repo.Collection)
 		}
 	}
 
