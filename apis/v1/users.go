@@ -74,5 +74,11 @@ func (handler *UserHandler) OAuth2Callback(c *gin.Context) {
 }
 
 func (handler *UserHandler) Me(c *gin.Context) {
+	user, err := oauth2.GetUser(c)
+	if err != nil {
+		c.JSON(response.BadRequestMsg(err.Error()))
+		return
+	}
 
+	c.JSON(response.OK(user))
 }
