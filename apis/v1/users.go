@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fcm/common/response"
+	"fcm/middlewares/oauth2"
 	"fcm/models"
 	"fcm/services"
 	"fmt"
@@ -25,7 +26,7 @@ func NewUsers(engine *gin.Engine, sessionManager *scs.SessionManager, userServic
 	engine.GET("login", handler.Login)
 	engine.GET("oauth2callback", handler.OAuth2Callback)
 
-	group := engine.Group("v1/user")
+	group := engine.Group("v1/user").Use(oauth2.NewOAuth2Middleware())
 	{
 		group.GET("me", handler.Me)
 	}
