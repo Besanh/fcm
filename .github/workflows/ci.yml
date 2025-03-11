@@ -1,0 +1,29 @@
+name: CI FCM commit
+
+on:
+    push:
+        branches: [ "*" ]
+    pull_request:
+        branches: [ "*" ]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: send telegram message on push
+              uses: appleboy/telegram-action@master
+              with:
+                to: ${{ secrets.TELEGRAM_TO }}
+                token: ${{ secrets.TELEGRAM_TOKEN }}
+                format: markdown
+                message: |
+                  Repository:
+                  [${{ github.repository }}](https://github.com/${{ github.repository }})
+                  Branch:
+                  `${{ github.ref_name }}`
+                  Actor:
+                  `${{ github.actor }}`
+                  Commit:
+                  [Commit Link](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+                  Message:
+                  Action: `${{ github.event_name }}` - Commit: `${{ github.event.commits[0].message }}`
