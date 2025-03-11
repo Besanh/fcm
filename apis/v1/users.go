@@ -5,8 +5,6 @@ import (
 	"fcm/middlewares/oauth2"
 	"fcm/models"
 	"fcm/services"
-	"fmt"
-	"net/http"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/gin-gonic/gin"
@@ -34,8 +32,13 @@ func NewUsers(engine *gin.Engine, sessionManager *scs.SessionManager, userServic
 
 func (handler *UserHandler) Login(c *gin.Context) {
 	url := handler.UserService.Login(c)
-	fmt.Println(url)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	if len(url) < 1 {
+		c.JSON(response.BadRequestMsg("url is empty"))
+		return
+	}
+	c.JSON(response.OK(map[string]any{
+		"url": url,
+	}))
 }
 
 func (handler *UserHandler) OAuth2Callback(c *gin.Context) {

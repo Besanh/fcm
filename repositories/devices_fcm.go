@@ -22,8 +22,6 @@ type (
 	}
 )
 
-var DevicesFcmRepo IDevicesFcm
-
 func NewDevicesFcm(redisClient redis.Client) IDevicesFcm {
 	return &DevicesFcm{
 		RedisClient:   redisClient,

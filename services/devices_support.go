@@ -18,7 +18,6 @@ import (
 func (s *Devices) getDeviceCode(request OAuth2Request) (result models.DeviceCodeResponse, err error) {
 	client := resty.NewResty(resty.RestyConfig{Timeout: request.Timeout})
 	defer client.Close()
-	client.SetTimeout(request.Timeout)
 
 	cbSetting := circuitbreaker.CBGeneric(request.CBSetting)
 	cb := gobreaker.NewCircuitBreaker[models.DeviceCodeResponse](*cbSetting)
@@ -67,7 +66,6 @@ func (s *Devices) getPollForToken(request OAuth2Request) (result models.TokenRes
 
 		client := resty.NewResty(resty.RestyConfig{Timeout: request.Timeout})
 		defer client.Close()
-		client.SetTimeout(request.Timeout)
 
 		cbSetting := circuitbreaker.CBGeneric(request.CBSetting)
 		cb := gobreaker.NewCircuitBreaker[models.TokenResponse](*cbSetting)

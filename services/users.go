@@ -109,7 +109,7 @@ func (s *Users) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2C
 	}
 
 	// Get user profile
-	userProfile, err := s.getProfileUser(ctx, OAuth2Request{
+	userProfile, err := s.getProfileUser(OAuth2Request{
 		AccessToken: userInfo.AccessToken,
 		Url:         GOOGLE_URL_USER_INFO,
 		CBSetting: circuitbreaker.CBSetting{

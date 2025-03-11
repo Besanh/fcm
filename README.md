@@ -31,17 +31,6 @@ The architecture mechanism
 
 ![Project Architecture](/assets/images/architecture.png)
 
-
-The OAuth 2.0 mechanism gets access token
-
-![OAuth 2 Access Token](/assets/images/oauth2_access_token.png)
-
-
-The OAuth 2.0 mechanism gets refresh token
-
-![OAuth 2 Refresh Token](/assets//images//oauth2_refresh_token.png)
-
-
 # Project structure
 1. **apis**: defines paths of apis
 2. **repositories**: defines mongodb connection

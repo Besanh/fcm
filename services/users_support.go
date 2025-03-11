@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"fcm/models"
 	circuitbreaker "fcm/pkgs/circuit_breaker"
@@ -30,10 +29,9 @@ type (
 /*
  * Combine Circuit Breaker pattern and resty
  */
-func (s *Users) getProfileUser(ctx context.Context, request OAuth2Request) (result models.UserProfile, err error) {
+func (s *Users) getProfileUser(request OAuth2Request) (result models.UserProfile, err error) {
 	client := resty.NewResty(resty.RestyConfig{Timeout: request.Timeout})
 	defer client.Close()
-	client.SetTimeout(request.Timeout)
 
 	cbSetting := circuitbreaker.CBGeneric(request.CBSetting)
 	cb := gobreaker.NewCircuitBreaker[models.UserProfile](*cbSetting)

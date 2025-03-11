@@ -19,8 +19,6 @@ type (
 	}
 )
 
-var UserRepo IUsers
-
 /*
  * Declare new repo with collection(table)
  */
