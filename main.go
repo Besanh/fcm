@@ -252,4 +252,7 @@ func initServices(server *server.Server) {
 	v1.NewDevicesFcm(server.Engine, services.NewDevicesFcm(devicesFcmRepo))
 	// Register the devices notification handlers with the server.
 	v1.NewDevicesNotification(server.Engine, services.NewDeviceNotification(devicesNotificationRepo))
+
+	// Register the health check endpoint with the server.
+	v1.NewHealthCheck(server.Engine)
 }
