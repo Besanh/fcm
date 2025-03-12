@@ -1,10 +1,10 @@
-FROM golang1.23:alpine as builder
+FROM golang1.24-alpine as builder
 WORKDIR /go/src/app
 COPY . .
 RUN go get .
 RUN go build -o app.exe
 
-FROM golang:1.23:alpine
+FROM golang:1.24-alpine
 WORKDIR /app
 ARG LOG_DIR=/app/tmp
 RUN mkdir -p ${LOG_DIR}
