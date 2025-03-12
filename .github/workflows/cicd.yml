@@ -3,8 +3,7 @@ name: CI Fins Collection Microservices
 on:
   push:
     branches:
-      - develop_fcm
-      - production_fcm
+      - fcm
 
 env:
   TARGET_BRANCH: ${{ github.ref_name }}
