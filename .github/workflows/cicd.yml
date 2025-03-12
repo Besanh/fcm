@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fcm
+      - production_fcm
 
 env:
   TARGET_BRANCH: ${{ github.ref_name }}
