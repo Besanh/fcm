@@ -1,0 +1,130 @@
+name: CI Fins Collection Microservices
+
+on:
+  push:
+    branches:
+      - develop_fcm
+      - production_fcm
+
+env:
+  TARGET_BRANCH: ${{ github.ref_name }}
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/fcm-service
+
+jobs:
+  branch_build_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test with the Go CLI
+        run: go test ./... -coverprofile=coverage.out
+
+  branch_build_setup:
+    runs-on: ubuntu-latest
+    needs: [branch_build_test]
+    outputs:
+      gh_branch_name: ${{ steps.set_env_variables.outputs.TARGET_BRANCH }}
+      gh_buildx_driver: ${{ steps.set_env_variables.outputs.BUILDX_DRIVER }}
+      gh_buildx_version: ${{ steps.set_env_variables.outputs.BUILDX_VERSION }}
+      gh_buildx_platforms: ${{ steps.set_env_variables.outputs.BUILDX_PLATFORMS }}
+
+    steps:
+      - id: set_env_variables
+        name: Set Environment Variables
+        run: |
+          if [ "${{ env.TARGET_BRANCH }}" == "production_fcm" ] ]; then
+            echo "BUILDX_DRIVER=cloud" >> $GITHUB_OUTPUT
+            echo "BUILDX_VERSION=develop:latest" >> $GITHUB_OUTPUT
+            echo "BUILDX_PLATFORMS=linux/amd64" >> $GITHUB_OUTPUT
+            echo "BUILDX_ENDPOINT" >> $GITHUB_OUTPUT
+          else
+            echo "BUILDX_DRIVER=docker-container" >> $GITHUB_OUTPUT
+            echo "BUILDX_VERSION=latest" >> $GITHUB_OUTPUT
+            echo "BUILDX_PLATFORMS=linux/amd64" >> $GITHUB_OUTPUT
+            echo "BUILDX_ENDPOINT=" >> $GITHUB_OUTPUT
+          fi
+          echo "TARGET_BRANCH=${{ env.TARGET_BRANCH }}" >> $GITHUB_OUTPUT
+
+  branch_build_push:
+    runs-on: ubuntu-latest
+    needs: [branch_build_setup]
+    env:
+      BRANCH_TAG: develop
+      TARGET_BRANCH: ${{ needs.branch_build_setup.outputs.gh_branch_name }}
+      BUILDX_DRIVER: ${{ needs.branch_build_setup.outputs.gh_buildx_driver }}
+      BUILDX_VERSION: ${{ needs.branch_build_setup.outputs.gh_buildx_version }}
+      BUILDX_PLATFORMS: ${{ needs.branch_build_setup.outputs.gh_buildx_platforms }}
+      BUILDX_ENDPOINT: ${{ needs.branch_build_setup.outputs.gh_buildx_endpoint }}
+    steps:
+      - name: Set Docker Tag
+        run: |
+          if [ "${{ env.TARGET_BRANCH }}" == "production_fcm" ]; then
+            TAG=production
+          else
+            TAG=develop
+          fi
+          echo "BRANCH_TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: ${{ env.BUILDX_DRIVER }}
+          version: ${{ env.BUILDX_VERSION }}
+          endpoint: ${{ env.BUILDX_ENDPOINT }}
+
+      - name: Setup Docker Meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=${{ env.BRANCH_TAG }}-latest,enable=true
+            type=raw,value=${{ env.BRANCH_TAG }}-{{date 'X'}},enable=true
+
+      - name: Build and Push to Docker Hub
+        uses: docker/build-push-action@v5.3.0
+        with:
+          platforms: ${{ env.BUILDX_PLATFORMS }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+        env:
+          DOCKER_BUILDKIT: 1
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            Repository:
+            ${{ github.repository }} [link](https://github.com/${{ github.repository }})
+            Branch:
+            `${{ github.ref_name }}`
+            Commit:
+            [Commit Link](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            Repo Action URL:
+            [Commit Link](https://github.com/${{ github.repository }}/actions/runs/${{github.run_id}})
+            Commit:
+            Push Image to Docker Hub via GitHub Actions
+            Image:
+            `${{ env.DOCKER_IMAGE }}:${{ env.BRANCH_TAG }}-latest`
