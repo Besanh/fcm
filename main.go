@@ -152,6 +152,13 @@ func initRedis() {
 
 	// Initialize the Redis cache with the Redis client.
 	cache.RCache = cache.NewRedisCache(redis.Redis.GetClient())
+
+	redisCfg := messagequeue.Rcfg{
+		Address:  env.GetStringENV("REDIS_ADDRESS", "localhost"),
+		Password: env.GetStringENV("REDIS_PASSWORD", ""),
+		DB:       env.GetIntENV("REDIS_RMQ_DB", 1),
+	}
+	messagequeue.RMQ = messagequeue.NewRMQ(redisCfg)
 }
 
 // initNatsJetstream initializes the NATS JetStream client.
@@ -238,6 +245,10 @@ func initServices(server *server.Server) {
 		},
 		Redirect: env.GetStringENV("OAUTH2_REDIRECT_URL", ""),
 	}
+
+	// init queue
+	services.DeviceNotificationQueueService = services.NewDeviceNotificationQueue(env.GetStringENV("device_notification_queue", "device_notification_queue"), env.GetStringENV("FCM_APP_ID", "anhle_fcm"), devicesFcmRepo)
+	services.DeviceNotificationQueueService.HandleQueueTasks()
 
 	// Create a new OAuth2 client from the OAuth2 configuration.
 

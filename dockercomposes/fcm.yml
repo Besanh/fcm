@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  fcm:
+    image: anhle3532/fcm-service:develop-latest
+    container_name: fcm-service
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - fcm_data:/data/fcm
+
+volumes:
+  fcm_data:
